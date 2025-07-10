@@ -43,6 +43,7 @@
       overflow: hidden;
       min-height: 40px;
       font-family: inherit;
+      height: 40px;
     }
     .button-group {
       display: flex;
@@ -59,19 +60,17 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-    button:first-child {
+    button:nth-child(1) {
       background-color: #4CAF50;
       color: white;
     }
-    button:first-child:hover {
-      background-color: #45a049;
-    }
-    button:last-child {
-      background-color: #f44336;
+    button:nth-child(2) {
+      background-color: #e53935;
       color: white;
     }
-    button:last-child:hover {
-      background-color: #d7372f;
+    button:nth-child(3) {
+      background-color: #f4b400;
+      color: white;
     }
     .output-box {
       margin-top: 20px;
@@ -94,6 +93,10 @@
       list-style: none;
       position: relative;
       padding-left: 1.2em;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #333;
     }
     summary::before {
       content: '\25B6';
@@ -104,16 +107,11 @@
     details[open] summary::before {
       transform: rotate(90deg);
     }
-    summary {
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #333;
-    }
   </style>
 </head>
 <body>
   <div class="container">
+    <img src="occ-logo.jpg" alt="OCC Logo" style="max-width: 200px; display: block; margin: 0 auto 20px auto;" onerror="this.style.display='none'">
     <h2>COPS Log Notes Generator</h2>
 
     <div class="form-group"><label>Initials and Time (Z) *</label><textarea id="initialsTime" oninput="autoExpand(this)"></textarea></div>
@@ -132,8 +130,8 @@
 
     <div class="button-group">
       <button onclick="generateNotes()">Copy Notes to Clipboard</button>
-      <button onclick="clearForm()" style="background-color: #e53935; color: white;">Clear Form</button>
-      <button onclick="toggleHistory()" style="background-color: #f4b400; color: white;">Previous Notes</button>
+      <button onclick="clearForm()">Clear Form</button>
+      <button onclick="toggleHistory()">Previous Notes</button>
     </div>
 
     <div class="output-box" id="output"></div>
@@ -142,7 +140,7 @@
     <details>
       <summary>📋 View Changelog</summary>
       <ul>
-        <li><strong>Version 3</strong> – Converted all fields to expanding textareas; Clear Form now resets height of boxes</li>
+        <li><strong>Version 3</strong> – Textareas now auto-expand only while typing and reset on clear/refresh; buttons recolored; logo updated to occ-logo.jpg</li>
         <li><strong>Version 2</strong> – Added Clear Form button, removed clickable title, added Previous Notes history (last 3 entries)</li>
         <li><strong>Version 1</strong> – Initial release of Log Notes Generator</li>
       </ul>
@@ -212,9 +210,21 @@
     }
 
     function autoExpand(textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
+  if (textarea.value.trim() !== '') {
+    textarea.style.height = '40px';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  } else {
+    textarea.style.height = '40px';
+  }
+}
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('textarea').forEach(textarea => {
+    textarea.value = '';
+    textarea.style.height = '40px';
+  });
+});
   </script>
 </body>
 </html>
