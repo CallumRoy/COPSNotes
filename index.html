@@ -142,7 +142,7 @@
     <details>
       <summary>📋 View Changelog</summary>
       <ul>
-        <li><strong>Version 3</strong> – Converted all fields to expanding textareas; Clear Form now resets height of boxes</li>
+        <li><strong>Version 3</strong> – Converted all fields to expanding textareas; Clear Form now resets height of boxes..</li>
         <li><strong>Version 2</strong> – Added Clear Form button, removed clickable title, added Previous Notes history (last 3 entries)</li>
         <li><strong>Version 1</strong> – Initial release of Log Notes Generator</li>
       </ul>
@@ -196,17 +196,16 @@
     }
 
     function clearForm() {
-      const inputs = document.querySelectorAll('textarea');
-      inputs.forEach(input => {
-        input.value = '';
-        input.style.height = '40px';
-      });
-      const output = document.getElementById('output');
-      output.innerText = '';
-      output.style.display = 'none';
-    }
+  document.querySelectorAll('textarea').forEach(textarea => {
+    textarea.value = '';
+    textarea.style.height = '40px';
+  });
+  const output = document.getElementById('output');
+  output.innerText = '';
+  output.style.display = 'none';
+}
 
-    function toggleHistory() {
+function toggleHistory() {
       const history = document.getElementById('history');
       history.style.display = history.style.display === 'none' ? 'block' : 'none';
     }
