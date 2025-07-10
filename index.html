@@ -43,6 +43,7 @@
       overflow: hidden;
       min-height: 40px;
       font-family: inherit;
+      height: 40px;
     }
     .button-group {
       display: flex;
@@ -59,19 +60,17 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-    button:first-child {
+    button:nth-child(1) {
       background-color: #4CAF50;
       color: white;
     }
-    button:first-child:hover {
-      background-color: #45a049;
-    }
-    button:last-child {
-      background-color: #f44336;
+    button:nth-child(2) {
+      background-color: #e53935;
       color: white;
     }
-    button:last-child:hover {
-      background-color: #d7372f;
+    button:nth-child(3) {
+      background-color: #f4b400;
+      color: white;
     }
     .output-box {
       margin-top: 20px;
@@ -94,6 +93,10 @@
       list-style: none;
       position: relative;
       padding-left: 1.2em;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #333;
     }
     summary::before {
       content: '\25B6';
@@ -104,24 +107,19 @@
     details[open] summary::before {
       transform: rotate(90deg);
     }
-    summary {
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #333;
-    }
   </style>
 </head>
 <body>
   <div class="container">
+    <img src="occ-logo.jpg" alt="OCC Logo" style="max-width: 200px; display: block; margin: 0 auto 20px auto;" onerror="this.style.display='none'">
     <h2>COPS Log Notes Generator</h2>
 
-    <div class="form-group"><label>Initials and Time (Z) *</label><textarea id="initialsTime" oninput="autoExpand(this)"></textarea></div>
+    <div class="form-group"><label>Initials and Time (Z) *</label><textarea id="initialsTime"  ></textarea></div>
     <div class="form-group"><label>Caller/Base Name *</label><textarea id="callerName" oninput="autoExpand(this)"></textarea></div>
-    <div class="form-group"><label>Reason for Call *</label><textarea id="reasonCall" oninput="autoExpand(this)"></textarea></div>
+    <div class="form-group"><label>Reason for Call *</label><textarea id="reasonCall" oninput="autoExpand(this)" oninput="autoExpand(this)"></textarea></div>
     <div class="form-group"><label>PNR</label><textarea id="pnr" oninput="autoExpand(this)"></textarea></div>
-    <div class="form-group"><label>Action Taken</label><textarea id="actionTaken" oninput="autoExpand(this)"></textarea></div>
-    <div class="form-group"><label>Advice Given</label><textarea id="adviceGiven" oninput="autoExpand(this)"></textarea></div>
+    <div class="form-group"><label>Action Taken</label><textarea id="actionTaken" oninput="autoExpand(this)" oninput="autoExpand(this)"></textarea></div>
+    <div class="form-group"><label>Advice Given</label><textarea id="adviceGiven" oninput="autoExpand(this)" oninput="autoExpand(this)"></textarea></div>
     <div class="form-group"><label>Voicemail Left</label><textarea id="voicemail" oninput="autoExpand(this)"></textarea></div>
     <div class="form-group"><label>Admin Fees</label><textarea id="adminFees" oninput="autoExpand(this)"></textarea></div>
     <div class="form-group"><label>Flight Delay</label><textarea id="flightDelay" oninput="autoExpand(this)"></textarea></div>
@@ -132,8 +130,8 @@
 
     <div class="button-group">
       <button onclick="generateNotes()">Copy Notes to Clipboard</button>
-      <button onclick="clearForm()" style="background-color: #e53935; color: white;">Clear Form</button>
-      <button onclick="toggleHistory()" style="background-color: #f4b400; color: white;">Previous Notes</button>
+      <button onclick="clearForm()">Clear Form</button>
+      <button onclick="toggleHistory()">Previous Notes</button>
     </div>
 
     <div class="output-box" id="output"></div>
@@ -142,7 +140,7 @@
     <details>
       <summary>📋 View Changelog</summary>
       <ul>
-        <li><strong>Version 3</strong> – Converted all fields to expanding textareas; Clear Form now resets height of boxes.</li>
+        <li><strong>Version 3</strong> – Text areas now auto-expand only while typing and reset on clear/refresh; buttons recolored; logo updated to occ-logo.jpg</li>
         <li><strong>Version 2</strong> – Added Clear Form button, removed clickable title, added Previous Notes history (last 3 entries)</li>
         <li><strong>Version 1</strong> – Initial release of Log Notes Generator</li>
       </ul>
@@ -150,71 +148,85 @@
   </div>
 
   <script>
-    function generateNotes() {
-      const get = id => document.getElementById(id).value.trim();
-      const requiredFields = ['initialsTime', 'callerName', 'reasonCall'];
-      for (const field of requiredFields) {
-        if (!get(field)) {
-          alert('Please fill in all required fields.');
-          return;
-        }
-      }
-      const fieldLabels = [
-        ['callerName', 'Caller/Base Name'],
-        ['reasonCall', 'Reason for Call'],
-        ['pnr', 'PNR'],
-        ['actionTaken', 'Action Taken'],
-        ['adviceGiven', 'Advice Given'],
-        ['voicemail', 'Voicemail Left'],
-        ['adminFees', 'Admin Fees'],
-        ['flightDelay', 'Flight Delay'],
-        ['cilIssued', 'CIL Issued'],
-        ['welfareIssued', 'Welfare Issued'],
-        ['paymentTaken', 'Payment Taken'],
-        ['reasonPayment', 'Reason for Payment']
-      ];
-      const lines = [get('initialsTime')].concat(
-        fieldLabels.map(([id, label]) => {
-          const value = get(id);
-          return value ? `${label}: ${value}` : null;
-        }).filter(Boolean)
-      );
-      const result = lines.join('\n');
-      navigator.clipboard.writeText(result).then(() => {
-        const historyBox = document.getElementById('history');
-        let history = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
-        history.unshift(result);
-        if (history.length > 3) history = history.slice(0, 3);
-        localStorage.setItem('clipboardHistory', JSON.stringify(history));
-        historyBox.innerHTML = '<strong>Previous Notes:</strong><br>' +
-          history.map(h => `<div style='margin-top:5px; padding:5px; background:#fff; border-left:4px solid #ccc;'>${h.replace(/\n/g, '<br>')}</div>`).join('');
-        const outputBox = document.getElementById('output');
-        outputBox.style.display = 'block';
-        outputBox.innerText = result;
-        alert('Log notes copied to clipboard!');
-      });
-    }
+function autoExpand(textarea) {
+  textarea.style.height = '40px';
+  if (textarea.scrollHeight > 40) {
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
+}
 
-    function clearForm() {
-      const inputs = document.querySelectorAll('textarea');
-      inputs.forEach(input => {
-        input.value = '';
-        input.style.height = '40px';
-      });
-      const output = document.getElementById('output');
-      output.innerText = '';
-      output.style.display = 'none';
-    }
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('textarea').forEach(textarea => {
+    textarea.value = '';
+    textarea.style.height = '40px';
+  });
+});
 
-    function toggleHistory() {
-      const history = document.getElementById('history');
-      history.style.display = history.style.display === 'none' ? 'block' : 'none';
+function generateNotes() {
+  const get = id => document.getElementById(id).value.trim();
+  const requiredFields = ['initialsTime', 'callerName', 'reasonCall'];
+  for (const field of requiredFields) {
+    if (!get(field)) {
+      alert('Please fill in all required fields.');
+      return;
     }
+  }
+  const fieldLabels = [
+    ['callerName', 'Caller/Base Name'],
+    ['reasonCall', 'Reason for Call'],
+    ['pnr', 'PNR'],
+    ['actionTaken', 'Action Taken'],
+    ['adviceGiven', 'Advice Given'],
+    ['voicemail', 'Voicemail Left'],
+    ['adminFees', 'Admin Fees'],
+    ['flightDelay', 'Flight Delay'],
+    ['cilIssued', 'CIL Issued'],
+    ['welfareIssued', 'Welfare Issued'],
+    ['paymentTaken', 'Payment Taken'],
+    ['reasonPayment', 'Reason for Payment']
+  ];
+  const lines = [get('initialsTime')].concat(
+    fieldLabels.map(([id, label]) => {
+      const value = get(id);
+      return value ? `${label}: ${value}` : null;
+    }).filter(Boolean)
+  );
+  const result = lines.join('
+');
+  navigator.clipboard.writeText(result).then(() => {
+    const historyBox = document.getElementById('history');
+    let history = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
+    history.unshift(result);
+    if (history.length > 3) history = history.slice(0, 3);
+    localStorage.setItem('clipboardHistory', JSON.stringify(history));
+    historyBox.innerHTML = '<strong>Previous Notes:</strong><br>' +
+      history.map(h => `<div style='margin-top:5px; padding:5px; background:#fff; border-left:4px solid #ccc;'>${h.replace(/
+/g, '<br>')}</div>`).join('');
+    const outputBox = document.getElementById('output');
+    outputBox.style.display = 'block';
+    outputBox.innerText = result;
+    alert('Log notes copied to clipboard!');
+  });
+}
 
-    function autoExpand(textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
-    }
-  </script>
+function clearForm() {
+  document.querySelectorAll('textarea').forEach(textarea => {
+    textarea.value = '';
+    textarea.style.height = '40px';
+  });
+  const output = document.getElementById('output');
+  output.innerText = '';
+  output.style.display = 'none';
+});
+  const output = document.getElementById('output');
+  output.innerText = '';
+  output.style.display = 'none';
+}
+
+function toggleHistory() {
+  const history = document.getElementById('history');
+  history.style.display = history.style.display === 'none' ? 'block' : 'none';
+}
+</script>
 </body>
 </html>
