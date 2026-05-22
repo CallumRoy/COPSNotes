@@ -1,261 +1,242 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Log Notes Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      transition: background 0.5s ease;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
-      padding: 20px;
-    }
-    .container {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      padding: 30px;
-      max-width: 650px;
-      margin: auto;
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-      font-size: 1.8em;
-      margin-bottom: 10px;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-    }
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-family: inherit;
-      font-size: 1em;
-      resize: none;
-      min-height: 40px;
-      line-height: 1.35;
-      overflow: hidden;
-    }
-    .button-group {
-      display: flex;
-      gap: 10px;
-      justify-content: space-between;
-      margin-top: 20px;
-    }
-    button {
-      flex: 1;
-      padding: 12px;
-      font-size: 1em;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    button:first-child {
-      background-color: #4CAF50;
-      color: white;
-    }
-    button:first-child:hover {
-      background-color: #45a049;
-    }
-    button:last-child {
-      background-color: #f44336;
-      color: white;
-    }
-    button:last-child:hover {
-      background-color: #d7372f;
-    }
-    .output-box {
-      margin-top: 20px;
-      background: #eef;
-      padding: 15px;
-      border-radius: 6px;
-      white-space: pre-wrap;
-      display: none;
-    }
-    details {
-      transition: all 0.3s ease;
-      overflow: hidden;
-      margin-top: 30px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 10px;
-      background-color: #f1f1f1;
-    }
-    summary {
-      list-style: none;
-      position: relative;
-      padding-left: 1.2em;
-    }
-    summary::before {
-      content: '\25B6';
-      position: absolute;
-      left: 0;
-      transition: transform 0.3s ease;
-    }
-    details[open] summary::before {
-      transform: rotate(90deg);
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <img src="occ-logo.jpg" alt="OCC Logo" style="max-width: 200px; display: block; margin: 0 auto 20px auto;">
-    <h2>COPS Log Notes Generator</h2>
-
-    <div class="form-group"><label for="initialsTime">Initials and Time (Z) *</label><textarea id="initialsTime" rows="1"></textarea></div>
-    <div class="form-group"><label for="callerName">Caller/Base Name *</label><textarea id="callerName" rows="1"></textarea></div>
-    <div class="form-group"><label for="reasonCall">Reason for Call *</label><textarea id="reasonCall" rows="1"></textarea></div>
-    <div class="form-group"><label for="pnr">PNR</label><textarea id="pnr" rows="1"></textarea></div>
-    <div class="form-group"><label for="actionTaken">Action Taken</label><textarea id="actionTaken" rows="1"></textarea></div>
-    <div class="form-group"><label for="adviceGiven">Advice Given</label><textarea id="adviceGiven" rows="1"></textarea></div>
-    <div class="form-group"><label for="voicemail">Voicemail Left</label><textarea id="voicemail" rows="1"></textarea></div>
-    <div class="form-group"><label for="adminFees">Admin Fees</label><textarea id="adminFees" rows="1"></textarea></div>
-    <div class="form-group"><label for="flightDelay">Flight Delay</label><textarea id="flightDelay" rows="1"></textarea></div>
-    <div class="form-group"><label for="cilIssued">CIL Issued</label><textarea id="cilIssued" rows="1"></textarea></div>
-    <div class="form-group"><label for="welfareIssued">Welfare Issued</label><textarea id="welfareIssued" rows="1"></textarea></div>
-    <div class="form-group"><label for="paymentTaken">Payment Taken</label><textarea id="paymentTaken" rows="1"></textarea></div>
-    <div class="form-group"><label for="reasonPayment">Reason for Payment</label><textarea id="reasonPayment" rows="1"></textarea></div>
-
-    <div class="button-group">
-      <button onclick="generateNotes()">Copy Notes to Clipboard</button>
-      <button onclick="clearForm()" style="background-color: #e53935; color: white;">Clear Form</button>
-      <button onclick="toggleHistory()" style="background-color: #f4b400; color: white;">Previous Notes</button>
-    </div>
-
-    <div class="output-box" id="output"></div>
-    <div class="output-box" id="history" style="margin-top: 10px; display:none;"></div>
-
-    <details>
-      <summary>📋 View Changelog</summary>
-      <ul>
-        <li><strong>Version 2</strong> – Added Clear Form button, removed clickable title, added Previous Notes history (last 3 entries)</li>
-        <li><strong>Version 1</strong> – Initial release of Log Notes Generator</li>
-      </ul>
-    </details>
-  </div>
-
-  <script>
-    const fieldLabels = [
-      ['callerName', 'Caller/Base Name'],
-      ['reasonCall', 'Reason for Call'],
-      ['pnr', 'PNR'],
-      ['actionTaken', 'Action Taken'],
-      ['adviceGiven', 'Advice Given'],
-      ['voicemail', 'Voicemail Left'],
-      ['adminFees', 'Admin Fees'],
-      ['flightDelay', 'Flight Delay'],
-      ['cilIssued', 'CIL Issued'],
-      ['welfareIssued', 'Welfare Issued'],
-      ['paymentTaken', 'Payment Taken'],
-      ['reasonPayment', 'Reason for Payment']
-    ];
-
-    function getValue(id) {
-      return document.getElementById(id).value.trim();
-    }
-
-    function escapeHtml(value) {
-      return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function autoResize(el) {
-      el.style.height = 'auto';
-      el.style.height = `${el.scrollHeight}px`;
-    }
-
-    function renderHistory() {
-      const historyBox = document.getElementById('history');
-      const history = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
-
-      if (!history.length) {
-        historyBox.innerHTML = '<strong>Previous Notes:</strong><br>No previous notes saved yet.';
-        return;
-      }
-
-      historyBox.innerHTML = '<strong>Previous Notes:</strong><br>' +
-        history.map(note =>
-          `<div style="margin-top:5px; padding:5px; background:#fff; border-left:4px solid #ccc;">${escapeHtml(note).replace(/\n/g, '<br>')}</div>`
-        ).join('');
-    }
-
-    async function generateNotes() {
-      const requiredFields = ['initialsTime', 'callerName', 'reasonCall'];
-
-      for (const field of requiredFields) {
-        if (!getValue(field)) {
-          alert('Please fill in all required fields.');
-          return;
-        }
-      }
-
-      const lines = [getValue('initialsTime')].concat(
-        fieldLabels.map(([id, label]) => {
-          const value = getValue(id);
-          return value ? `${label}: ${value}` : null;
-        }).filter(Boolean)
-      );
-
-      const result = lines.join('\n');
-      const outputBox = document.getElementById('output');
-
-      try {
-        await navigator.clipboard.writeText(result);
-      } catch (error) {
-        outputBox.style.display = 'block';
-        outputBox.innerText = result;
-        alert('Your notes were generated, but your browser blocked clipboard access. You can copy them from the box shown.');
-        return;
-      }
-
-      let history = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
-      history.unshift(result);
-      history = history.slice(0, 3);
-      localStorage.setItem('clipboardHistory', JSON.stringify(history));
-
-      renderHistory();
-
-      outputBox.style.display = 'block';
-      outputBox.innerText = result;
-      alert('Log notes copied to clipboard!');
-    }
-
-    function clearForm() {
-      document.querySelectorAll('textarea').forEach(textArea => {
-        textArea.value = '';
-        autoResize(textArea);
-      });
-
-      const output = document.getElementById('output');
-      output.innerText = '';
-      output.style.display = 'none';
-    }
-
-    function toggleHistory() {
-      const history = document.getElementById('history');
-      renderHistory();
-      history.style.display = history.style.display === 'none' ? 'block' : 'none';
-    }
-
-    document.querySelectorAll('textarea').forEach(textarea => {
-      textarea.addEventListener('input', () => autoResize(textarea));
-      autoResize(textarea);
-    });
-  </script>
-</body>
-</html>
+diff --git a/index.html b/index.html
+index 457cea6fe364a5fd7a0eeb34719c234ae0a4400c..7a0663725a35b1b94729cdf76698bf10867afe66 100644
+--- a/index.html
++++ b/index.html
+@@ -11,137 +11,159 @@
+       background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
+       padding: 20px;
+     }
+     .container {
+       background: white;
+       border-radius: 12px;
+       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+       padding: 30px;
+       max-width: 650px;
+       margin: auto;
+     }
+     h2 {
+       text-align: center;
+       color: #333;
+       font-size: 1.8em;
+       margin-bottom: 10px;
+     }
+     .form-group {
+       margin-bottom: 15px;
+     }
+     label {
+       font-weight: bold;
+       display: block;
+       margin-bottom: 5px;
+     }
+-    input[type="text"] {
++    textarea {
+       width: 100%;
+       padding: 10px;
+       border: 1px solid #ccc;
+       border-radius: 6px;
+       box-sizing: border-box;
++      font-family: inherit;
++      font-size: 1em;
++      resize: none;
++      min-height: 40px;
++      line-height: 1.35;
++      overflow: hidden;
++      word-wrap: break-word;
+     }
+     .button-group {
+       display: flex;
+       gap: 10px;
+       justify-content: space-between;
+       margin-top: 20px;
+     }
+     button {
+       flex: 1;
+       padding: 12px;
+       font-size: 1em;
+       border: none;
+       border-radius: 6px;
+       cursor: pointer;
+       transition: background 0.3s ease;
+     }
+     button:first-child {
+       background-color: #4CAF50;
+       color: white;
+     }
+     button:first-child:hover {
+       background-color: #45a049;
+     }
+     button:last-child {
+       background-color: #f44336;
+       color: white;
+     }
+     button:last-child:hover {
+       background-color: #d7372f;
+     }
+     .output-box {
+       margin-top: 20px;
+       background: #eef;
+       padding: 15px;
+       border-radius: 6px;
+       white-space: pre-wrap;
++      overflow-wrap: anywhere;
++      word-break: break-word;
++      max-width: 100%;
++      box-sizing: border-box;
+       display: none;
+     }
++    .history-entry {
++      margin-top: 5px;
++      padding: 5px;
++      background: #fff;
++      border-left: 4px solid #ccc;
++      white-space: pre-wrap;
++      overflow-wrap: anywhere;
++      word-break: break-word;
++      max-width: 100%;
++      box-sizing: border-box;
++    }
+     details {
+       transition: all 0.3s ease;
+       overflow: hidden;
+       margin-top: 30px;
+       border: 1px solid #ccc;
+       border-radius: 8px;
+       padding: 10px;
+       background-color: #f1f1f1;
+     }
+     summary {
+       list-style: none;
+       position: relative;
+       padding-left: 1.2em;
+     }
+     summary::before {
+       content: '\25B6';
+       position: absolute;
+       left: 0;
+       transition: transform 0.3s ease;
+     }
+     details[open] summary::before {
+       transform: rotate(90deg);
+     }
+   </style>
+ </head>
+ <body>
+   <div class="container">
+     <img src="occ-logo.jpg" alt="OCC Logo" style="max-width: 200px; display: block; margin: 0 auto 20px auto;">
+     <h2>COPS Log Notes Generator</h2>
+ 
+-    <div class="form-group"><label>Initials and Time (Z) *</label><input type="text" id="initialsTime"></div>
+-    <div class="form-group"><label>Caller/Base Name *</label><input type="text" id="callerName"></div>
+-    <div class="form-group"><label>Reason for Call *</label><input type="text" id="reasonCall"></div>
+-    <div class="form-group"><label>PNR</label><input type="text" id="pnr"></div>
+-    <div class="form-group"><label>Action Taken</label><input type="text" id="actionTaken"></div>
+-    <div class="form-group"><label>Advice Given</label><input type="text" id="adviceGiven"></div>
+-    <div class="form-group"><label>Voicemail Left</label><input type="text" id="voicemail"></div>
+-    <div class="form-group"><label>Admin Fees</label><input type="text" id="adminFees"></div>
+-    <div class="form-group"><label>Flight Delay</label><input type="text" id="flightDelay"></div>
+-    <div class="form-group"><label>CIL Issued</label><input type="text" id="cilIssued"></div>
+-    <div class="form-group"><label>Welfare Issued</label><input type="text" id="welfareIssued"></div>
+-    <div class="form-group"><label>Payment Taken</label><input type="text" id="paymentTaken"></div>
+-    <div class="form-group"><label>Reason for Payment</label><input type="text" id="reasonPayment"></div>
++    <div class="form-group"><label>Initials and Time (Z) *</label><textarea id="initialsTime" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Caller/Base Name *</label><textarea id="callerName" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Reason for Call *</label><textarea id="reasonCall" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>PNR</label><textarea id="pnr" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Action Taken</label><textarea id="actionTaken" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Advice Given</label><textarea id="adviceGiven" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Voicemail Left</label><textarea id="voicemail" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Admin Fees</label><textarea id="adminFees" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Flight Delay</label><textarea id="flightDelay" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>CIL Issued</label><textarea id="cilIssued" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Welfare Issued</label><textarea id="welfareIssued" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Payment Taken</label><textarea id="paymentTaken" rows="1" oninput="autoResize(this)"></textarea></div>
++    <div class="form-group"><label>Reason for Payment</label><textarea id="reasonPayment" rows="1" oninput="autoResize(this)"></textarea></div>
+ 
+     <div class="button-group">
+       <button onclick="generateNotes()">Copy Notes to Clipboard</button>
+       <button onclick="clearForm()" style="background-color: #e53935; color: white;">Clear Form</button>
+       <button onclick="toggleHistory()" style="background-color: #f4b400; color: white;">Previous Notes</button>
+     </div>
+ 
+     <div class="output-box" id="output"></div>
+     <div class="output-box" id="history" style="margin-top: 10px; display:none;"></div>
+ 
+     <details>
+       <summary>📋 View Changelog</summary>
+       <ul>
+         <li><strong>Version 2</strong> – Added Clear Form button, removed clickable title, added Previous Notes history (last 3 entries)</li>
+         <li><strong>Version 1</strong> – Initial release of Log Notes Generator</li>
+       </ul>
+     </details>
+   </div>
+ 
+   <script>
+     function generateNotes() {
+       const get = id => document.getElementById(id).value.trim();
+       const requiredFields = ['initialsTime', 'callerName', 'reasonCall'];
+       for (const field of requiredFields) {
+         if (!get(field)) {
+@@ -155,48 +177,60 @@
+         ['pnr', 'PNR'],
+         ['actionTaken', 'Action Taken'],
+         ['adviceGiven', 'Advice Given'],
+         ['voicemail', 'Voicemail Left'],
+         ['adminFees', 'Admin Fees'],
+         ['flightDelay', 'Flight Delay'],
+         ['cilIssued', 'CIL Issued'],
+         ['welfareIssued', 'Welfare Issued'],
+         ['paymentTaken', 'Payment Taken'],
+         ['reasonPayment', 'Reason for Payment']
+       ];
+       const lines = [get('initialsTime')].concat(
+         fieldLabels.map(([id, label]) => {
+           const value = get(id);
+           return value ? `${label}: ${value}` : null;
+         }).filter(Boolean)
+       );
+       const result = lines.join('\n');
+       navigator.clipboard.writeText(result).then(() => {
+         const historyBox = document.getElementById('history');
+         let history = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
+         history.unshift(result);
+         if (history.length > 3) history = history.slice(0, 3);
+         localStorage.setItem('clipboardHistory', JSON.stringify(history));
+         historyBox.innerHTML = '<strong>Previous Notes:</strong><br>' +
+-          history.map(h => `<div style='margin-top:5px; padding:5px; background:#fff; border-left:4px solid #ccc;'>${h.replace(/\n/g, '<br>')}</div>`).join('');
++          history.map(h => `<div class="history-entry">${h.replace(/\n/g, '<br>')}</div>`).join('');
+         const outputBox = document.getElementById('output');
+         outputBox.style.display = 'block';
+         outputBox.innerText = result;
+         alert('Log notes copied to clipboard!');
+       });
+     }
+ 
+     function clearForm() {
+-      const inputs = document.querySelectorAll('input[type="text"]');
+-      inputs.forEach(input => input.value = '');
++      const textAreas = document.querySelectorAll('textarea');
++      textAreas.forEach(textArea => {
++        textArea.value = '';
++        autoResize(textArea);
++      });
+       const output = document.getElementById('output');
+       output.innerText = '';
+       output.style.display = 'none';
+     }
+ 
+     function toggleHistory() {
+       const history = document.getElementById('history');
+       history.style.display = history.style.display === 'none' ? 'block' : 'none';
+     }
++
++    function autoResize(el) {
++      el.style.height = 'auto';
++      el.style.height = `${el.scrollHeight}px`;
++    }
++
++    window.addEventListener('DOMContentLoaded', () => {
++      document.querySelectorAll('textarea').forEach(autoResize);
++    });
+   </script>
+ </body>
+ </html>
