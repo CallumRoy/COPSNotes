@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Log Notes Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      transition: background 0.5s ease;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      max-width: 650px;
+      margin: auto;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-family: inherit;
+      font-size: 1em;
+      resize: none;
+      min-height: 40px;
+      line-height: 1.35;
+      overflow: hidden;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 1em;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      color: white;
+    }
+
+    .copy-btn { background-color: #4CAF50; }
+    .copy-btn:hover { background-color: #45a049; }
+
+    .clear-btn { background-color: #e53935; }
+    .clear-btn:hover { background-color: #d7372f; }
+
+    .history-btn { background-color: #f4b400; }
+    .history-btn:hover { background-color: #d39c00; }
+
+    .output-box {
+      margin-top: 20px;
+      background: #eef;
+      padding: 15px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
+      display: none;
+    }
+
+    .history-entry {
+      margin-top: 5px;
+      padding: 5px;
+      background: #fff;
+      border-left: 4px solid #ccc;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .easter-egg-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin: 18px 0 12px 0;
+    }
+
+    .easter-egg {
+      flex: 0 0 auto;
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: #622D91;
+      color: #fff;
+      font-size: 1.7rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      line-height: 1;
+    }
+
+    .easter-egg:hover,
+    .easter-egg:focus {
+      background: #4d2273;
+      transform: scale(1.08);
+      outline: none;
+    }
+
+    .kelly-message {
+      position: absolute;
+      left: 50%;
+      top: 58px;
+      transform: translateX(-50%);
+      background: #222;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.95em;
+      font-weight: 700;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .kelly-message::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid #222;
+    }
+
+    .easter-egg-wrap:hover .kelly-message,
+    .easter-egg-wrap:focus-within .kelly-message,
+    .kelly-message.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    details {
+      transition: all 0.3s ease;
+      overflow: hidden;
+      margin-top: 26px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #f1f1f1;
+    }
+
+    summary {
+      list-style: none;
+      position: relative;
+      padding-left: 1.2em;
+      cursor: pointer;
+    }
+
+    summary::before {
+      content: '\25B6';
+      position: absolute;
+      left: 0;
+      transition: transform 0.3s ease;
+    }
+
+    details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    @media (max-width: 520px) {
+      .button-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="occ-logo.jpg" alt="OCC Logo" style="max-width: 200px; display: block; margin: 0 auto 20px auto;">
+    <h2>COPS Log Notes Generator</h2>
+
+    <div class="form-group"><label for="initialsTime">Initials and Time (Z) *</label><textarea id="initialsTime" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="callerName">Caller/Base Name *</label><textarea id="callerName" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="reasonCall">Reason for Call *</label><textarea id="reasonCall" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="pnr">PNR</label><textarea id="pnr" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="actionTaken">Action Taken</label><textarea id="actionTaken" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="adviceGiven">Advice Given</label><textarea id="adviceGiven" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="voicemail">Voicemail Left</label><textarea id="voicemail" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="adminFees">Admin Fees</label><textarea id="adminFees" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="flightDelay">Flight Delay</label><textarea id="flightDelay" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="cilIssued">CIL Issued</label><textarea id="cilIssued" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="welfareIssued">Welfare Issued</label><textarea id="welfareIssued" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="paymentTaken">Payment Taken</label><textarea id="paymentTaken" rows="1" oninput="autoResize(this)"></textarea></div>
+    <div class="form-group"><label for="reasonPayment">Reason for Payment</label><textarea id="reasonPayment" rows="1" oninput="autoResize(this)"></textarea></div>
+
+    <div class="button-group">
+      <button type="button" class="copy-btn" onclick="generateNotes()">Copy Notes to Clipboard</button>
+      <button type="button" class="clear-btn" onclick="clearForm()">Clear Form</button>
+      <button type="button" class="history-btn" onclick="toggleHistory()">Previous Notes</button>
+    </div>
+
+    <div class="output-box" id="output"></div>
+    <div class="output-box" id="history" style="margin-top: 10px; display:none;"></div>
+
+    <div class="easter-egg-wrap">
+      <button
+        type="button"
+        class="easter-egg"
+        aria-label="Kelly was here"
+        onclick="showKellyMessage()">
+        ?
+      </button>
+      <div id="kellyMessage" class="kelly-message">Kelly was here</div>
+    </div>
+
+    <details>
+      <summary>📋 View Changelog</summary>
+      <ul>
+        <li><strong>Version 3</strong> – Added visible question mark easter egg with hover and click message.</li>
+        <li><strong>Version 2</strong> – Added expanding text boxes, fixed wrapping and added previous notes history.</li>
+        <li><strong>Version 1</strong> – Initial release of Log Notes Generator.</li>
+      </ul>
+    </details>
+  </div>
+
+  <script>
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function generateNotes() {
+      const get = id => document.getElementById(id).value.trim();
+      const requiredFields = ['initialsTime', 'callerName', 'reasonCall'];
+
+      for (const field of requiredFields) {
+        if (!get(field)) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+      }
+
+      const fieldLabels = [
+        ['callerName', 'Caller/Base Name'],
+        ['reasonCall', 'Reason for Call'],
+        ['pnr', 'PNR'],
+        ['actionTaken', 'Action Taken'],
+        ['adviceGiven', 'Advice Given'],
+        ['voicemail', 'Voicemail Left'],
+        ['adminFees', 'Admin Fees'],
+        ['flightDelay', 'Flight Delay'],
+        ['cilIssued', 'CIL Issued'],
+        ['welfareIssued', 'Welfare Issued'],
+        ['paymentTaken', 'Payment Taken'],
+        ['reasonPayment', 'Reason for Payment']
+      ];
+
+      const lines = [get('initialsTime')].concat(
+        fieldLabels.map(([id, label]) => {
+          const value = get(id);
+          return value ? `${label}: ${value}` : null;
+        }).filter(Boolean)
+      );
+
+      const result = lines.join('\n');
+
+      navigator.clipboard.writeText(result).then(() => {
+        let history = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
+        history.unshift(result);
+
+        if (history.length > 3) {
+          history = history.slice(0, 3);
+        }
+
+        localStorage.setItem('clipboardHistory', JSON.stringify(history));
+        renderHistory();
+
+        const outputBox = document.getElementById('output');
+        outputBox.style.display = 'block';
+        outputBox.innerText = result;
+
+        alert('Log notes copied to clipboard!');
+      }).catch(() => {
+        const outputBox = document.getElementById('output');
+        outputBox.style.display = 'block';
+        outputBox.innerText = result;
+        alert('Could not copy automatically. The notes are shown below.');
+      });
+    }
+
+    function clearForm() {
+      const textAreas = document.querySelectorAll('textarea');
+
+      textAreas.forEach(textArea => {
+        textArea.value = '';
+        autoResize(textArea);
+      });
+
+      const output = document.getElementById('output');
+      output.innerText = '';
+      output.style.display = 'none';
+    }
+
+    function renderHistory() {
+      const historyBox = document.getElementById('history');
+      const history = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
+
+      if (!history.length) {
+        historyBox.innerHTML = '<strong>No previous notes yet.</strong>';
+        return false;
+      }
+
+      historyBox.innerHTML =
+        '<strong>Previous Notes:</strong><br>' +
+        history.map(h =>
+          `<div class="history-entry">${escapeHtml(h).replace(/\n/g, '<br>')}</div>`
+        ).join('');
+
+      return true;
+    }
+
+    function toggleHistory() {
+      const history = document.getElementById('history');
+      renderHistory();
+      history.style.display = history.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+
+    function showKellyMessage() {
+      const message = document.getElementById('kellyMessage');
+      message.classList.add('show');
+
+      clearTimeout(window.kellyTimeout);
+      window.kellyTimeout = setTimeout(() => {
+        message.classList.remove('show');
+      }, 2200);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('textarea').forEach(autoResize);
+      renderHistory();
+    });
+  </script>
+</body>
+</html>
